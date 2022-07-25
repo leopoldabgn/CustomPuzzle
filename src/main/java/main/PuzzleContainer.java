@@ -1,6 +1,8 @@
 package main;
 
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -11,22 +13,28 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 public class PuzzleContainer extends JPanel
 {
 	private static final long serialVersionUID = 1L;
+	public static final String LAST_PUZZLE_NAME = "last_puzzle.save";
 
+	private ImageIcon imgIcon;
+	private transient BufferedImage img;
 	private Piece[][] pieces;
-	private Piece actualPiece;
-	private int[] startIndex;
+	private transient Piece actualPiece;
+	private transient int[] startIndex;
 	private Dimension pieceDim;
 	
 	public PuzzleContainer(BufferedImage img, int c, int l)
 	{
-		super();
 		this.setLayout(null);
-		this.setAndAddPieces(img, c, l);
+		this.imgIcon = new ImageIcon(img);
+		this.img = img;
+		this.setupPieces(img, c, l);
+		this.addPieces(c, l);
 		pieceDim = pieces[0][0].getSize();
 		this.setPreferredSize(new Dimension((int)pieceDim.getWidth()*c, (int)pieceDim.getHeight()*l));
 		
@@ -77,8 +85,8 @@ public class PuzzleContainer extends JPanel
 			}
 		});
 	}
-	
-	public void setAndAddPieces(BufferedImage img, int c, int l)
+
+	public void setupPieces(BufferedImage img, int c, int l)
 	{
 		BufferedImage[] images = cutImg(img, c, l);
 		pieces = new Piece[c][l];
@@ -88,7 +96,6 @@ public class PuzzleContainer extends JPanel
 			for(int i=0;i<l;i++)
 			{
 				pieces[j][i] = new Piece(images[(j*l)+i], x, y, new int[] {j, i});
-				this.add(pieces[j][i]);
 				y += h;
 			}
 			y = 0;
@@ -96,6 +103,21 @@ public class PuzzleContainer extends JPanel
 		}
 	}
 	
+	public void addPieces(int c, int l) {
+		this.removeAll();
+		int x = 0, y = 0, w = pieces[0][0].getWidth(), h = pieces[0][0].getHeight();
+		for(int j=0;j<c;j++)
+		{
+			for(int i=0;i<l;i++)
+			{
+				this.add(pieces[j][i]);
+				y += h;
+			}
+			y = 0;
+			x += w;
+		}
+	}
+
 	public int[][] getMatrixOfImage(BufferedImage img)
 	{
 		if(img == null)
@@ -107,7 +129,6 @@ public class PuzzleContainer extends JPanel
 		for(int j=0;j<w;j++)
 			for(int i=0;i<h;i++)
 				matrix[j][i] = img.getRGB(j, i);
-				
 		return matrix;
 	}
 	
@@ -141,16 +162,7 @@ public class PuzzleContainer extends JPanel
 			{
 				images[(j*l)+i] = getImageByMatrix(matrix, j, i, w, h);
 			}
-		}
-		
-		/*for(int j=0;j<l;j++)
-		{
-			for(int i=0;i<c;i++)
-			{
-				images[(j*c)+i] = getImageByMatrix(matrix, i, j, w, h);
-			}
-		}*/
-		
+		}		
 		
 		return images;
 	}
@@ -192,6 +204,17 @@ public class PuzzleContainer extends JPanel
 		invertPiecePos(pieces[p1[0]][p1[1]], pieces[p2[0]][p2[1]]);
 	}
 	
+	public static BufferedImage toBufferedImg(ImageIcon imgIcon)
+	{
+		Image img = imgIcon.getImage();
+		BufferedImage im = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_RGB);
+		Graphics g = im.getGraphics();
+		g.drawImage(img, 0, 0, img.getWidth(null), img.getHeight(null), null);
+		g.dispose();
+		
+		return im;
+	}
+
 	public void scramble(int essais)
 	{
 		int c = pieces.length, l = pieces[0].length;
@@ -206,7 +229,7 @@ public class PuzzleContainer extends JPanel
 		File file = new File(name);
 		try {
 			oos =  new ObjectOutputStream(new FileOutputStream(file));
-			oos.writeObject(pieces);
+			oos.writeObject(this);
 			oos.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -214,20 +237,71 @@ public class PuzzleContainer extends JPanel
 		}
 	}
 	
-	public void load(String name)
+	public static PuzzleContainer load(String name)
 	{
+		PuzzleContainer pC = null;
 		ObjectInputStream ois = null;
 		File file = new File(name);
 		if(file.exists())
 		{
 			try {
 				ois =  new ObjectInputStream(new FileInputStream(file)) ;
-				pieces = (Piece[][])ois.readObject();
+				pC = (PuzzleContainer)ois.readObject();
 				ois.close();
 			} catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
 			}	
 		}
+
+		return pC;
 	}
-	
+
+	public void saveLastPuzzle() {
+		save(LAST_PUZZLE_NAME);
+	}
+
+	public void loadLastPuzzle() {
+		loadIn(LAST_PUZZLE_NAME);
+	}
+
+	public void loadIn(String name)
+	{
+		PuzzleContainer pC = load(name);
+		if(pC == null)
+			return;
+		this.imgIcon = pC.imgIcon;
+		this.pieces = pC.pieces;
+		this.pieceDim = pC.pieceDim;
+		int c = nbColumns(), l = nbLines();
+		this.addPieces(c, l);
+		this.setPreferredSize(new Dimension((int)pieceDim.getWidth()*c, (int)pieceDim.getHeight()*l));
+	}
+
+	public void changeDimension(int c, int l)
+	{
+		if(img == null)
+			img = toBufferedImg(imgIcon);
+		this.setupPieces(img, c, l);
+		this.addPieces(c, l);
+		pieceDim = pieces[0][0].getSize();
+		this.setPreferredSize(new Dimension((int)pieceDim.getWidth()*c, (int)pieceDim.getHeight()*l));
+		this.revalidate();
+		this.repaint();
+	}
+
+	public void reset()
+	{
+		changeDimension(pieces.length, pieces[0].length);
+	}
+
+	public int nbColumns()
+	{
+		return pieces == null ? 0 : pieces.length;
+	}
+
+	public int nbLines()
+	{
+		return pieces == null ? -1 : (pieces[0] == null ? -1 : pieces[0].length);
+	}
+
 }

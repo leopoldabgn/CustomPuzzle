@@ -5,7 +5,7 @@ public class Main
 
 	public Main()
 	{
-		new Window(1000, 600);
+		new Window(1025, 600);
 	}
 
 	public static void main(String[] args)

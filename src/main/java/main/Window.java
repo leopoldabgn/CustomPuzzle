@@ -29,9 +29,8 @@ public class Window extends JFrame
 	
 	public Window(int w, int h)
 	{
-		super();
 		this.setMinimumSize(new Dimension(w, h));
-		this.setTitle("puzzleGame");
+		this.setTitle("Custom Puzzle");
 		this.setLayout(new BorderLayout());
 		this.setMinimumSize(new Dimension(w, h));
 		this.setResizable(true);
@@ -46,6 +45,7 @@ public class Window extends JFrame
 		tools.add(load);
 		
 		puzzlePan = new PuzzlePan(w, h);
+		puzzlePan.loadLastPuzzle();
 		
 		this.add(puzzlePan, BorderLayout.CENTER);
 		
@@ -59,23 +59,23 @@ public class Window extends JFrame
 		
 		save.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				puzzlePan.getPuzzleContainer().save("puzzle1.save");
+				puzzlePan.saveLastPuzzle();
 			}
 		});
 		
 		load.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				puzzlePan.getPuzzleContainer().load("puzzle1.save");
+				puzzlePan.loadLastPuzzle();
 			}
 		});
 		
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e){
-				//preset.savePreset(self);
+				puzzlePan.saveLastPuzzle();
 				System.exit(0);
 				}
 		});
-		
+
 		this.setVisible(true);
 	}
 	
