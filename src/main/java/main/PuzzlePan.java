@@ -12,6 +12,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.border.EmptyBorder;
@@ -45,8 +46,8 @@ public class PuzzlePan extends JPanel
         difficulty.setPaintLabels(true);
 		
 		final int c = difficulty.getValue(), l = difficulty.getValue();
+		this.preview = new Preview(img, 300, 400, true);
 		img = resize(img, 625, 550);
-		this.preview = new Preview(img, 300, 400);
 		this.puzzleContainer = new PuzzleContainer(img, c, l);
 
 		resetBtn.addActionListener(e -> {
@@ -68,8 +69,13 @@ public class PuzzlePan extends JPanel
 		
 		JPanel pan = new JPanel();
 		pan.setLayout(new GridLayout(2, 1));
-		pan.add(getTempPan(preview));
 		JPanel pan2 = new JPanel();
+		pan2.setOpaque(false);
+		pan2.setLayout(new BoxLayout(pan2, BoxLayout.PAGE_AXIS));
+		pan2.add(getTempPan(preview));
+		pan2.add(getTempPan(new JLabel("(Click on me)")));
+		pan.add(pan2);
+		pan2 = new JPanel();
 		pan2.setOpaque(false);
 		pan2.setLayout(new BoxLayout(pan2, BoxLayout.PAGE_AXIS));
 		pan2.add(getTempPan(difficulty));
