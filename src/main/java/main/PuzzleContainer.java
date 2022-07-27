@@ -105,17 +105,9 @@ public class PuzzleContainer extends JPanel
 	
 	public void addPieces(int c, int l) {
 		this.removeAll();
-		int x = 0, y = 0, w = pieces[0][0].getWidth(), h = pieces[0][0].getHeight();
 		for(int j=0;j<c;j++)
-		{
 			for(int i=0;i<l;i++)
-			{
 				this.add(pieces[j][i]);
-				y += h;
-			}
-			y = 0;
-			x += w;
-		}
 	}
 
 	public int[][] getMatrixOfImage(BufferedImage img)

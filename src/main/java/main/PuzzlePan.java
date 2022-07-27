@@ -14,6 +14,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.border.EmptyBorder;
 
 public class PuzzlePan extends JPanel
 {
@@ -27,7 +28,6 @@ public class PuzzlePan extends JPanel
 
 	public PuzzlePan(int w, int h)
 	{
-		final int c = 25, l=25;
 		String imgPath = "paysage.jpg";
 		BufferedImage img = null;
 		try {
@@ -37,24 +37,30 @@ public class PuzzlePan extends JPanel
 		}
 		if(img == null)
 			return;
-		img = resize(img, w-w/4, h-h/6);
-		this.preview = new Preview(img, w/3, h);
-		this.puzzleContainer = new PuzzleContainer(img, c, l);
 		
-        this.difficulty = new JSlider(0, 100, 25);
+        this.difficulty = new JSlider(0, 100, 15);
         difficulty.setOpaque(false);
 		difficulty.setMinorTickSpacing(10);
         difficulty.setMajorTickSpacing(25);
         difficulty.setPaintLabels(true);
+		
+		final int c = difficulty.getValue(), l = difficulty.getValue();
+		img = resize(img, 625, 550);
+		this.preview = new Preview(img, 300, 400);
+		this.puzzleContainer = new PuzzleContainer(img, c, l);
 
 		resetBtn.addActionListener(e -> {
-			puzzleContainer.changeDimension(difficulty.getValue(),
-											difficulty.getValue());
+			int a = difficulty.getValue();
+			a = a <= 1 ? 2 : a;
+			int b = a;
+			puzzleContainer.changeDimension(a, b);
 		});
 
 		scrambleBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int c = difficulty.getValue(), l = difficulty.getValue();
+				int c = difficulty.getValue();
+				c = c <= 1 ? 2 : c;
+				int l = c;
 				puzzleContainer.changeDimension(c, l);
 				puzzleContainer.scramble(c*l*2);
 			}
@@ -70,12 +76,21 @@ public class PuzzlePan extends JPanel
 		pan2.add(getTempPan(resetBtn, scrambleBtn));
 		pan.add(pan2);
 
-		this.setLayout(new GridLayout(1, 2));
-		this.add(pan);
-		this.add(puzzleContainer);
+		this.setBorder(new EmptyBorder(10, 10, 10, 10));
+		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+		this.add(getTempPan(10, pan));
+		this.add(getTempPan(10, puzzleContainer));
 	}
 	
-	public static JPanel getTempPan(Component ... comp) {
+	public static JPanel getTempPan(int padding, Component ... comp)
+	{
+		JPanel pan = getTempPan(comp);
+		pan.setBorder(new EmptyBorder(padding, padding, padding, padding));
+		return pan;
+	}
+
+	public static JPanel getTempPan(Component ... comp)
+	{
 		JPanel tmp = new JPanel();
 		tmp.setOpaque(false);
 		for(Component c : comp)

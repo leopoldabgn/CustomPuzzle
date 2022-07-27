@@ -41,8 +41,8 @@ public class Window extends JFrame
 		
 		menuBar.add(tools);
 		tools.add(reset);
-		tools.add(save);
-		tools.add(load);
+		// tools.add(save);
+		// tools.add(load);
 		
 		puzzlePan = new PuzzlePan(w, h);
 		puzzlePan.loadLastPuzzle();
