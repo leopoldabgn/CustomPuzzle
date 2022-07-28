@@ -145,9 +145,6 @@ public class PuzzleContainer extends JPanel
 		int w = (int) Math.floor((float)img.getWidth(null)/c);
 		int h = (int) Math.floor((float)img.getHeight(null)/l);
 		
-		System.out.println("Image Size --> w: "+img.getWidth()+" h: "+img.getHeight());
-		System.out.println("Piece Size --> w: "+w+" h: "+h);
-		
 		for(int j=0;j<c;j++)
 		{
 			for(int i=0;i<l;i++)
