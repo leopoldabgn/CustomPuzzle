@@ -20,6 +20,7 @@ public class PuzzleContainer extends JPanel
 {
 	private static final long serialVersionUID = 1L;
 	public static final String LAST_PUZZLE_NAME = "last_puzzle.save";
+	public static final Dimension DEFAULT_PUZZLE_SIZE = new Dimension(675, 550);
 
 	private ImageIcon imgIcon;
 	private transient BufferedImage img;
@@ -28,11 +29,11 @@ public class PuzzleContainer extends JPanel
 	private transient int[] startIndex;
 	private Dimension pieceDim;
 	
-	public PuzzleContainer(BufferedImage img, int c, int l)
+	public PuzzleContainer(ImageIcon imgIcon, int c, int l)
 	{
 		this.setLayout(null);
-		this.imgIcon = new ImageIcon(img);
-		this.img = img;
+		this.imgIcon = imgIcon;
+		this.img = getResizedImg();
 		this.setupPieces(img, c, l);
 		this.addPieces(c, l);
 		pieceDim = pieces[0][0].getSize();
@@ -127,7 +128,6 @@ public class PuzzleContainer extends JPanel
 	public BufferedImage getImageByMatrix(int[][] matrix, int c, int l, int w, int h)
 	{
 		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		
 		
 		for(int j=0;j<w;j++)
 			for(int i=0;i<h;i++)
@@ -271,14 +271,20 @@ public class PuzzleContainer extends JPanel
 
 	public void changeDimension(int c, int l)
 	{
-		if(img == null)
-			img = toBufferedImg(imgIcon);
+		img = getResizedImg();
 		this.setupPieces(img, c, l);
 		this.addPieces(c, l);
 		pieceDim = pieces[0][0].getSize();
 		this.setPreferredSize(new Dimension((int)pieceDim.getWidth()*c, (int)pieceDim.getHeight()*l));
 		this.revalidate();
 		this.repaint();
+	}
+
+	public void changeImage(ImageIcon imgIcon)
+	{
+		this.imgIcon = imgIcon;
+		this.img = null;
+		changeDimension(nbColumns(), nbLines());
 	}
 
 	public void reset()
@@ -294,6 +300,19 @@ public class PuzzleContainer extends JPanel
 	public int nbLines()
 	{
 		return pieces == null ? -1 : (pieces[0] == null ? -1 : pieces[0].length);
+	}
+
+	public BufferedImage getResizedImg()
+	{
+		if(imgIcon == null)
+			return null;
+		BufferedImage buffImg = toBufferedImg(imgIcon);
+		return PuzzlePan.resize(buffImg, (int)DEFAULT_PUZZLE_SIZE.getWidth(), (int)DEFAULT_PUZZLE_SIZE.getHeight());
+	}
+
+	public BufferedImage getImage()
+	{
+		return toBufferedImg(imgIcon);
 	}
 
 }

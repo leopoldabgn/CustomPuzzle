@@ -7,11 +7,14 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -24,7 +27,8 @@ public class PuzzlePan extends JPanel
 	private PuzzleContainer puzzleContainer;
 	private Preview preview;
 	private JButton scrambleBtn = new JButton("Scramble"),
-					resetBtn = new JButton("Reset");
+					resetBtn = new JButton("Reset"),
+					importImg = new JButton("Import image");
 	private JSlider difficulty;
 
 	public PuzzlePan(int w, int h)
@@ -45,10 +49,13 @@ public class PuzzlePan extends JPanel
         difficulty.setMajorTickSpacing(25);
         difficulty.setPaintLabels(true);
 		
-		final int c = difficulty.getValue(), l = difficulty.getValue();
-		this.preview = new Preview(img, 300, 400, true);
-		img = resize(img, 625, 550);
-		this.puzzleContainer = new PuzzleContainer(img, c, l);
+		int c = difficulty.getValue(), l = difficulty.getValue();
+		this.preview = new Preview(img, 300, 200, true);
+		this.puzzleContainer = new PuzzleContainer(new ImageIcon(img), c, l);
+
+		importImg.addActionListener(e -> {
+			changeImage(openFile());
+		});
 
 		resetBtn.addActionListener(e -> {
 			int a = difficulty.getValue();
@@ -79,7 +86,7 @@ public class PuzzlePan extends JPanel
 		pan2.setOpaque(false);
 		pan2.setLayout(new BoxLayout(pan2, BoxLayout.PAGE_AXIS));
 		pan2.add(getTempPan(difficulty));
-		pan2.add(getTempPan(resetBtn, scrambleBtn));
+		pan2.add(getTempPan(importImg, resetBtn, scrambleBtn));
 		pan.add(pan2);
 
 		this.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -141,6 +148,47 @@ public class PuzzlePan extends JPanel
 		return new Dimension(w, h);
 	}
     
+	public static File openFileChooser(int fileSelectionMode)
+	{
+		JFileChooser choice = new JFileChooser();
+		choice.setFileSelectionMode(fileSelectionMode);
+		int var = choice.showOpenDialog(null);
+		if(var == JFileChooser.APPROVE_OPTION)
+			return choice.getSelectedFile();
+		return null;
+	}
+
+	public static File openFile()
+	{
+		return openFileChooser(JFileChooser.FILES_ONLY);
+	}
+
+	public static File openFolder()
+	{
+		return openFileChooser(JFileChooser.DIRECTORIES_ONLY);
+	}
+
+	public static String getFileExtension(File f)
+	{
+		try {
+			String ext = f.getName().substring(f.getName().lastIndexOf(".")+1).toUpperCase();
+			return ext;
+		} catch(Exception e) {
+			return null;
+		}
+	}
+	
+	public static boolean isImg(File f)
+	{
+		if(f.isFile())
+		{
+			String ext = getFileExtension(f).toUpperCase();
+			if(ext.equals("JPG") || ext.equals("JPEG") || ext.equals("PNG")) // || ext.equals("ICO"))
+					return true;
+		}
+		return false;
+	}
+
 	public void saveLastPuzzle()
 	{
 		puzzleContainer.saveLastPuzzle();
@@ -148,8 +196,16 @@ public class PuzzlePan extends JPanel
 
 	public void loadLastPuzzle()
 	{
-		
-		puzzleContainer.loadLastPuzzle();
+		loadIn(PuzzleContainer.LAST_PUZZLE_NAME);
+	}
+
+	public void changeImage(File image) 
+	{
+		if(image == null || !isImg(image))
+			return;
+		ImageIcon imgIcon = new ImageIcon(image.getAbsolutePath());
+		puzzleContainer.changeImage(imgIcon);
+		preview.changeImage(resize(PuzzleContainer.toBufferedImg(imgIcon), 625, 550));
 		revalidate();
 		repaint();
 	}
@@ -159,4 +215,21 @@ public class PuzzlePan extends JPanel
 		return puzzleContainer;
 	}
 	
+	public void save(String name)
+	{
+		puzzleContainer.save(name);
+	}
+
+	public void loadIn(String name)
+	{
+		try {
+			this.puzzleContainer.loadIn(name);
+			this.preview.changeImage(puzzleContainer.getImage());
+			revalidate();
+			repaint();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 }

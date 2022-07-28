@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.net.URL;
 
 import javax.swing.JFrame;
@@ -23,9 +24,9 @@ public class Window extends JFrame
 	
 	private JMenuBar menuBar = new JMenuBar();
 	private JMenu tools = new JMenu("Tools");
-	private JMenuItem save = new JMenuItem("Save"),
+	private JMenuItem saveAs = new JMenuItem("Save as..."),
 			reset = new JMenuItem("Reset"),
-			load =  new JMenuItem("Load");
+			load =  new JMenuItem("Load save...");
 	
 	public Window(int w, int h)
 	{
@@ -40,9 +41,9 @@ public class Window extends JFrame
 		this.setJMenuBar(menuBar);
 		
 		menuBar.add(tools);
+		tools.add(load);
+		tools.add(saveAs);
 		tools.add(reset);
-		// tools.add(save);
-		// tools.add(load);
 		
 		puzzlePan = new PuzzlePan(w, h);
 		puzzlePan.loadLastPuzzle();
@@ -57,23 +58,37 @@ public class Window extends JFrame
 			}
 		});
 		
-		save.addActionListener(new ActionListener() {
+		saveAs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				puzzlePan.saveLastPuzzle();
+				File saveAs = PuzzlePan.openFile();
+				if(saveAs != null) {
+					String path = saveAs.getAbsolutePath();
+					String ext = PuzzlePan.getFileExtension(saveAs);
+					if(ext == null || !ext.equalsIgnoreCase("save"))
+						path += ".save";
+					puzzlePan.save(path);
+				}
 			}
 		});
 		
 		load.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				puzzlePan.loadLastPuzzle();
+				File loadFile = PuzzlePan.openFile();
+				if(loadFile != null) {
+					String path = loadFile.getAbsolutePath();
+					String ext = PuzzlePan.getFileExtension(loadFile);
+					if(ext == null || !ext.equalsIgnoreCase("save"))
+						return;
+					puzzlePan.loadIn(path);
+				}
 			}
 		});
 		
 		this.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e){
+			public void windowClosing(WindowEvent e) {
 				puzzlePan.saveLastPuzzle();
 				System.exit(0);
-				}
+			}
 		});
 
 		this.setVisible(true);
