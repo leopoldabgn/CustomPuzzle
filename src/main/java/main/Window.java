@@ -25,7 +25,7 @@ public class Window extends JFrame
 	private JMenuBar menuBar = new JMenuBar();
 	private JMenu tools = new JMenu("Tools");
 	private JMenuItem saveAs = new JMenuItem("Save as..."),
-			reset = new JMenuItem("Reset"),
+			reset = new JMenuItem("Example"),
 			load =  new JMenuItem("Load save...");
 	
 	public Window(int w, int h)
